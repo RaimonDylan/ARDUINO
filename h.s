@@ -1,5 +1,5 @@
 #!/bin/bash
-list=("Amelioration du code", "Edit README", "Optimisation de l algorithme en nlog n","Mise en place de decimation","Passage sur version stable", "Amelioration de performances", "Mise a jours de la base de donnees", "Update Meh", "Meh", "Ajout de commentaires oublies" , "Factorisation du code !")
+list=("Amelioration du code", "Edit README", "Optimisation de l algorithme en nlog n", "Mise en place de decimation", "Passage sur version stable", "Amelioration de performances", "Mise a jours de la base de donnees", "Update Meh", "Meh", "Ajout de commentaires oublies" , "Factorisation du code !")
 for i in {1..22}
 do
 	touch temp$i.txt
