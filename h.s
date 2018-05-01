@@ -13,8 +13,8 @@ do
 	rm temp$i.txt
 	export GIT_AUTHOR_DATE=$a$b$c
 	export GIT_COMMITTER_DATE=$a$b$c
-	export GIT_AUTHOR_NAME="Dylan Raimon"
-	export GIT_AUTHOR_EMAIL="dylanraimon@gmail.com"
+	export GIT_AUTHOR_NAME="Dylan Antonio"
+	export GIT_AUTHOR_EMAIL="dylan_83000@hotmail.fr"
 	export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
 	export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
 	git commit -m "Addes some patches"
