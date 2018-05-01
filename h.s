@@ -1,6 +1,6 @@
 #!/bin/bash
-list=("added index file","updated readme file", "did some extra calculations","deleted media files","extra code removed")
-for i in {1..15}
+list=("Amélioration du code","Edit README.md", "Optimisation de l'algorithme en nlog n","Mise en place de décimation","Passage sur version stable", "Amélioration de performances", "Mise à jours de la base de données", "Update Meh", "Meh", "Ajout de commentaires oubliés" , "Factorisation du code !")
+for i in {1..22}
 do
 	touch temp$i.txt
 	git add -A
