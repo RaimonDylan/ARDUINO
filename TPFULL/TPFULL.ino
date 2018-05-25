@@ -24,13 +24,14 @@ uint16_t light=0;
 int red=0;
 int green=0;
 int blue=0;
+int oldInput=0;
 uint16_t volt=0;
 String btn="";
 unsigned long previousMillisLed = 0;        // will store last time LED was updated
 unsigned long previousMillisTH = 0; 
 unsigned long previousMillisI = 0; 
 unsigned long previousMillisLux = 0; 
-const long intervalLed = 100;  
+const long intervalLed = 500;  
 const long intervalI= 30000;
 const long intervalLux= 5000;
 const long intervalTH = 2000;// interval at which to blink (milliseconds)
@@ -46,9 +47,11 @@ void setup() {
     pinMode(0xA1, INPUT); // PREPARATION BTN
     pinMode(2, OUTPUT); // PREPARATION BTN
        pinMode(LED_BUILTIN, OUTPUT);
+       Wire.begin();
+       Serial.begin(9600);
      sensor.begin();
-     Wire.begin();
-     Serial.begin(9600);
+     
+     
     
     
 
@@ -61,7 +64,6 @@ void loop() {
   dht.read(7);
   val = digitalRead(0xA1);  
   m = analogRead(1);
-  parseBtn(m);
 unsigned long currentMillis = millis();
 unsigned long currentMillis2 = millis();
 unsigned long currentMillis3 = millis();
@@ -69,6 +71,7 @@ unsigned long currentMillis3 = millis();
   if (currentMillis - previousMillisLed >= intervalLed) {
     previousMillisLed = currentMillis;
     switchLight();
+    parseBtn(m);
     }
     if (currentMillis2 - previousMillisTH >= intervalTH) {
     previousMillisTH = currentMillis2;
@@ -77,13 +80,14 @@ unsigned long currentMillis3 = millis();
     }
     if (currentMillis3 - previousMillisI >= intervalI && activeI) {
       previousMillisI = currentMillis3;
-          aze = "I;30;";
+          
           n = analogRead(1);
           light = sensor.getRawLight();
           volt = readPwrVoltage();
           btn = readbuttons(n);
           res = temperature+separateur+humidity+separateur+light+separateur+volt+separateur+btn;
           rty = ";ok";
+          aze = "#I;30;";
           Serial.println(aze+res+rty);
     }
   if (stringComplete) {
@@ -125,6 +129,7 @@ String parseCommandLine(String s){
           activeI = true;
         }else if(s[2]=='0'){
           aze = "I;";
+          activeI = false;
           n = analogRead(1);
           light = sensor.getRawLight();
           volt = readPwrVoltage();
@@ -169,7 +174,9 @@ String parseCommandLine(String s){
  }
 
 int8_t parseBtn(int s){
-  if(s!=0){
+  if(s!=0 || oldInput != 0){
+    if(oldInput != s && oldInput != s+1 && oldInput != s-1){
+      oldInput = s;
   if (s == 138) {
     digitalWrite(10, HIGH);
     digitalWrite(6, LOW);
@@ -185,42 +192,20 @@ int8_t parseBtn(int s){
     digitalWrite(6, LOW);
     digitalWrite(10, LOW);
     }
-    aze = "B;";
-    switch (s){
-      case 369:
-        //BP1
-        res = 1;
-        break;
-      case 204:
-        //BP2
-        res = 2;
-        break;
-       case 138:
-        //BP3
-        res = 4;
-        break;
-       case 459:
-       case 460:
-       //BP1 + BP2
-       res = 3;
-        break;
-       case 296:
-       //BP2 + BP3
-       res = 6;
-        break;
-        case 429:
-       //BP1 + BP3
-       res = 5;
-        break;
-       case 505:
-       case 504:
-       res = 7;
-       //BP1 + BP2 + BP3
-        break;
-    }
+    aze = "#B;";
+    res = (s<375 && s>365)?1
+    :(s<210 && s>200)?2
+    :(s<150 && s>120)?4
+    :(s<470 && s>450)?3
+    :(s<300 && s>290)?6
+    :(s<435 && s>420)?5
+    :(s<510 && s>500)?7
+    :0;
+    
     rty = ";ok";
     Serial.println(aze+res+rty);
     }
+  }
 
  }
 
@@ -241,40 +226,16 @@ int8_t parseBtn(int s){
     digitalWrite(6, LOW);
     digitalWrite(10, LOW);
     }
-    aze = "B;";
-    switch (s){
-      case 369:
-        //BP1
-        res = 1;
-        break;
-      case 204:
-        //BP2
-        res = 2;
-        break;
-       case 138:
-        //BP3
-        res = 4;
-        break;
-       case 459:
-       case 460:
-       //BP1 + BP2
-       res = 3;
-        break;
-       case 296:
-       //BP2 + BP3
-       res = 6;
-        break;
-        case 429:
-       //BP1 + BP3
-       res = 5;
-        break;
-       case 505:
-       case 504:
-       res = 7;
-       //BP1 + BP2 + BP3
-        break;
+    res = (s<375 && s>365)?1 // BP1
+    :(s<210 && s>200)?2 // BP2
+    :(s<150 && s>120)?4 // BP1+BP2
+    :(s<470 && s>450)?3 // BP3
+    :(s<300 && s>290)?6 // BP2+BP3
+    :(s<435 && s>420)?5 // BP1+BP3
+    :(s<510 && s>500)?7 // BP1+BP2+BP3
+    :0;
+    
     }
-    rty = ";ok";
     return res;
     }else return "0";
 
@@ -323,8 +284,7 @@ void switchLight() {
 }
 int16_t readPwrVoltage(){
   sensorValue = analogRead(0);
-  sensorValue = sensorValue*3300/1024;
+  sensorValue = sensorValue*(3300/1024);
   return sensorValue;
 }
-
 
