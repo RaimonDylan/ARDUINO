@@ -234,10 +234,10 @@ int8_t parseBtn(int s){
     :(s<435 && s>420)?5 // BP1+BP3
     :(s<510 && s>500)?7 // BP1+BP2+BP3
     :0;
-    
-    }
-    return res;
+        return res;
     }else return "0";
+
+ 
 
  }
 

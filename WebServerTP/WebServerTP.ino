@@ -32,11 +32,13 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <SoftwareSerial.h>
 
 const char* ssid = "Le Max2";
 const char* password = "123456789";
 
 ESP8266WebServer server(80);
+SoftwareSerial swSer(D6, D5, false, 256);
 
 const int led = 13;
 
@@ -73,6 +75,7 @@ void handleRoot() {
 void aled() {
   int cmd = (server.arg(0) == "1")?1:0;
   digitalWrite(D2, cmd);
+  swSer.write("!G1\n");
 }
 
 void handleNotFound() {
@@ -98,8 +101,9 @@ void setup(void) {
   pinMode(led, OUTPUT);
   pinMode(D2, OUTPUT);  
   digitalWrite(led, 0);
-  Serial.begin(115200);
+  Serial.begin(9600);
   WiFi.mode(WIFI_STA);
+  swSer.begin(9600);
   WiFi.begin(ssid, password);
   Serial.println("");
 
@@ -115,7 +119,7 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  if (MDNS.begin("esp8266")) {
+  if (MDNS.begin("cnam")) {
     Serial.println("MDNS responder started");
   }
 
