@@ -1,10 +1,17 @@
-# ARDUINO
+# TP ARDUINO - CNAM:STMN 2018
 
-# Mise en œuvre de capteurs - Dialogues sur la liaison série
+> Mise en œuvre de capteurs - Dialogues sur la liaison série
+
+## Réalisé par Dylan Raimon, Dylan Antonio et David MOLINARI
+
+  ![GitHub Logo](https://i.imgur.com/dFmzsmO.jpg)
+
+
+#### TP2
 
 ###  1) Stocker les données reçues et détecter la fin d'une commande
 
-```java
+```cpp
 
 #define TMAX  300
 #define CF '\n'
@@ -32,7 +39,7 @@ void serialEvent() {
 
 ###  2) Implémenter les premières commandes
 
-```java
+```cpp
 String parseCommandLine(String s){
   if(s[0] == '!'){
     switch (s[1]){
@@ -61,7 +68,7 @@ String parseCommandLine(String s){
 
 ###  3) Lecture température et humidité
 
-```java
+```cpp
 
   humidity = (float)(dht.humidity);
   temperature = (float)(dht.temperature); 
@@ -82,7 +89,7 @@ case 'H':
 
 ###  4)  Lecture de la luminosité
 
-```java
+```cpp
 
 case 'L':
         aze = "L;";
@@ -94,7 +101,7 @@ case 'L':
 
 ###  5)  Éclairage automatique
 
-```java
+```cpp
 void switchLight() {
   light = sensor.getRawLight();
   if(light > (SEUIL+20)){
@@ -119,8 +126,7 @@ void switchLight() {
 
 ###  6)   Lire la tension d'alimentation
 
-```java
-
+```cpp
 int16_t readPwrVoltage(){
   sensorValue = analogRead(0);
   sensorValue = sensorValue*(3300/1024);
@@ -139,7 +145,7 @@ case 'V':
 
 ###  7)   Buttons "analogiques"
 
-```java
+```cpp
 
 int8_t readButtons(int s){
   if(s!=0 || oldInput != 0){
@@ -181,7 +187,7 @@ int8_t readButtons(int s){
 
 ###  8) Trame d'information périodique
 
-```java
+```cpp
 
  case 'I':
         if(s[2] == '3' && s[3] == '0'){
@@ -214,7 +220,7 @@ int8_t readButtons(int s){
 
 ###  9) Faire varier la couleur de la led RGB
 
-```java
+```cpp
 case 'C':
         aze = "C;";
         char * p;
@@ -229,3 +235,89 @@ case 'C':
 
 ```
 
+
+
+#### TP3
+
+###  1.1) Communiquer avec l'ATMega
+
+```cpp
+void softSerialEvent() {
+  while (swSer.available()) {
+    char inChar = (char)swSer.read();
+    // add it to the inputString:
+    if(inputString.length() <= Tmax){
+      if (inChar == CF) {
+        stringComplete = true;
+      }else
+         inputString += inChar;
+    }
+  }
+}
+
+```
+
+###  1.2) Extraire les informations d'une commande !I
+
+```cpp
+
+en cours
+
+```
+
+
+### 2) Extraire les informations d'une commande !I
+
+
+```cpp
+if (MDNS.begin("cnam")) {
+    Serial.println("MDNS responder started");
+  }
+  
+  ....
+  
+    server.on("/execute", aled);
+    void aled() {
+       int cmd = (server.arg(0) == "1")?1:0;
+       digitalWrite(D2, cmd);
+       swSer.write("!G1\n");  
+}
+```
+
+
+
+### 3) Une page HTML qui affiche les informations reçues de l'ATMega
+
+
+```cpp
+  snprintf(temp, 800,
+
+           "<html>\
+  <head>\
+    <title>ESP8266 Demo</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <ul>\
+      <li>Commande utilisé : %s</li>\
+      <li>Option : %s</li>\
+      <li>Température : %s</li>\
+      <li>Humidité : %s</li>\
+      <li>Luminosité : %s</li>\
+      <li>Volt : %s</li>\
+      <li>bouton utilisé : %s</li>\
+    </ul>\
+    <p>: %s</p>\
+    <img src=\"/test.svg\" />\
+  </body>\
+</html>",
+
+           cmdUse.c_str(),cmdOption.c_str(),cmdTemperature.c_str(),cmdHumidity.c_str(),
+           cmdLight.c_str(),
+           cmdVolt.c_str(),
+           cmdBtn.c_str()
+          );
+}
+```
