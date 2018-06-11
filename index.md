@@ -4,7 +4,7 @@
 
 ## Réalisé par Dylan Raimon, Dylan Antonio et David MOLINARI
 
-  ![GitHub Logo](https://boutique.semageek.com/2-4005-large_default/arduino-uno-dip-rev3.jpg)
+  ![GitHub Logo](http://imgur.com/gallery/1KMsCSK)
 
 
 #### TP2
