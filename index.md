@@ -4,7 +4,7 @@
 
 ## Réalisé par Dylan Raimon, Dylan Antonio et David MOLINARI
 
-  ![GitHub Logo](http://imgur.com/gallery/1KMsCSK)
+  ![GitHub Logo](https://i.imgur.com/dFmzsmO.jpg)
 
 
 #### TP2
