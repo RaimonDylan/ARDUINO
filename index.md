@@ -1,7 +1,12 @@
 # TP ARDUINO - CNAM:STMN 2018
+
 > Mise en œuvre de capteurs - Dialogues sur la liaison série
 
 ## Réalisé par Dylan Raimon, Dylan Antonio et David MOLINARI
+
+  ![GitHub Logo](https://boutique.semageek.com/2-4005-large_default/arduino-uno-dip-rev3.jpg)
+
+
 
 ###  1) Stocker les données reçues et détecter la fin d'une commande
 
