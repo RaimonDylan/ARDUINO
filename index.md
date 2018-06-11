@@ -7,6 +7,7 @@
   ![GitHub Logo](https://boutique.semageek.com/2-4005-large_default/arduino-uno-dip-rev3.jpg)
 
 
+#### TP2
 
 ###  1) Stocker les données reçues et détecter la fin d'une commande
 
@@ -234,3 +235,89 @@ case 'C':
 
 ```
 
+
+
+#### TP3
+
+###  1.1) Communiquer avec l'ATMega
+
+```cpp
+void softSerialEvent() {
+  while (swSer.available()) {
+    char inChar = (char)swSer.read();
+    // add it to the inputString:
+    if(inputString.length() <= Tmax){
+      if (inChar == CF) {
+        stringComplete = true;
+      }else
+         inputString += inChar;
+    }
+  }
+}
+
+```
+
+###  1.2) Extraire les informations d'une commande !I
+
+```cpp
+
+en cours
+
+```
+
+
+### 2) Extraire les informations d'une commande !I
+
+
+```cpp
+if (MDNS.begin("cnam")) {
+    Serial.println("MDNS responder started");
+  }
+  
+  ....
+  
+    server.on("/execute", aled);
+    void aled() {
+       int cmd = (server.arg(0) == "1")?1:0;
+       digitalWrite(D2, cmd);
+       swSer.write("!G1\n");  
+}
+```
+
+
+
+### 3) Une page HTML qui affiche les informations reçues de l'ATMega
+
+
+```cpp
+  snprintf(temp, 800,
+
+           "<html>\
+  <head>\
+    <title>ESP8266 Demo</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <ul>\
+      <li>Commande utilisé : %s</li>\
+      <li>Option : %s</li>\
+      <li>Température : %s</li>\
+      <li>Humidité : %s</li>\
+      <li>Luminosité : %s</li>\
+      <li>Volt : %s</li>\
+      <li>bouton utilisé : %s</li>\
+    </ul>\
+    <p>: %s</p>\
+    <img src=\"/test.svg\" />\
+  </body>\
+</html>",
+
+           cmdUse.c_str(),cmdOption.c_str(),cmdTemperature.c_str(),cmdHumidity.c_str(),
+           cmdLight.c_str(),
+           cmdVolt.c_str(),
+           cmdBtn.c_str()
+          );
+}
+```
