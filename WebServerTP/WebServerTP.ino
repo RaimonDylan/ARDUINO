@@ -130,7 +130,9 @@ void handleRoot2() {
 void aled() {
   int cmd = (server.arg(0) == "1")?1:0;
   digitalWrite(D2, cmd);
-  swSer.write("!G1\n");
+  if(cmd == 1) swSer.write("!G1\n");
+  else if(cmd == 0) swSer.write("!G0\n");
+  
   
 }
 
@@ -253,19 +255,15 @@ void drawGraphLight() {
   out += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"400\" height=\"150\">\n";
   out += "<rect width=\"400\" height=\"150\" fill=\"rgb(250, 230, 210)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
   out += "<g stroke=\"black\">\n";
-  float light = atoi(cmdLight.c_str());
-  float calcul = (light/800)*100;
-  int y = calcul;
-  for (int x = 10; x < 390; x += 10) {
+  int tab[42];
+  float gros = 0;
+  for(int i=0;i<41;i++){
     softSerialEvent();
     float light = atoi(cmdLight.c_str());
     Serial.println(light);
-    float calcul = (light/800)*100;
-    int y2 = calcul;
-    Serial.println(y2);
-    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 40-y, x + 10, 40-y2);
-    out += temp;
-    y = y2;
+    float calcul = light;
+    tab[i] = calcul;
+    gros = (gros < calcul)?calcul:gros;
     if (stringComplete) {
     Serial.println(inputString);
     getValueAll(inputString,';');
@@ -275,6 +273,21 @@ void drawGraphLight() {
     stringComplete = false;
   }
   delay(1000);
+  }
+  float calcul = tab[0]/gros;
+  calcul = 130*calcul;
+  int y = calcul;
+  int i = 1;
+  
+  for (int x = 10; x < 390; x += 10) {
+    float calcul = tab[i]/gros;
+  calcul = 130*calcul;
+    int y2 = calcul;
+    Serial.println(y2);
+    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 140-y, x + 10, 140-y2);
+    out += temp;
+    y = y2;
+    i++;
   }
   out += "</g>\n</svg>\n";
 
