@@ -32,7 +32,7 @@ unsigned long previousMillisTH = 0;
 unsigned long previousMillisI = 0; 
 unsigned long previousMillisLux = 0; 
 const long intervalLed = 500;  
-const long intervalI= 30000;
+const long intervalI= 1000;
 const long intervalLux= 5000;
 const long intervalTH = 2000;// interval at which to blink (milliseconds)
 

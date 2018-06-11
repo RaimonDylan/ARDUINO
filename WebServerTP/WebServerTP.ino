@@ -33,9 +33,24 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <SoftwareSerial.h>
+#include <FS.h> // Include the SPIFFS library
 
 const char* ssid = "Le Max2";
 const char* password = "123456789";
+String inputString = "";         // a String to hold incoming data
+String rep = "";         // a String to hold incoming data
+boolean stringComplete = false;  // whether the string is complete
+boolean start = false;
+String cmdUse = "";
+String cmdOption = "";
+String cmdTemperature = "";
+String cmdHumidity = "";
+String cmdLight = "";
+String cmdVolt = "";
+String cmdBtn = "";
+String valueLight="";
+int Tmax = 300;
+char CF = '\n'; 
 
 ESP8266WebServer server(80);
 SoftwareSerial swSer(D6, D5, false, 256);
@@ -43,6 +58,46 @@ SoftwareSerial swSer(D6, D5, false, 256);
 const int led = 13;
 
 void handleRoot() {
+  digitalWrite(led, 1);
+  char temp[500];
+  int sec = millis() / 1000;
+  int min = sec / 60;
+  int hr = min / 60;
+
+  snprintf(temp, 500,
+
+           "<html>\
+  <head>\
+    <meta charset=\"UTF-8\">\
+    <title>ESP8266 Demo</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <ul>\
+      <li>Commande utilisé : %s</li>\
+      <li>Option : %s</li>\
+      <li>Température : %s</li>\
+      <li>Humidité : %s</li>\
+      <li>Luminosité : %s</li>\
+      <li>Volt : %s</li>\
+      <li>bouton utilisé : %s</li>\
+    </ul>\
+    <img src=\"/test.svg\" />\
+  </body>\
+</html>",
+
+          cmdUse.c_str(),cmdOption.c_str(),cmdTemperature.c_str(),cmdHumidity.c_str(),
+           cmdLight.c_str(),
+           cmdVolt.c_str(),
+           cmdBtn.c_str()
+          );
+  server.send(200, "text/html", temp);
+  digitalWrite(led, 0);
+}
+
+void handleRoot2() {
   digitalWrite(led, 1);
   char temp[400];
   int sec = millis() / 1000;
@@ -53,7 +108,7 @@ void handleRoot() {
 
            "<html>\
   <head>\
-    <meta http-equiv='refresh' content='5'/>\
+    <meta http-equiv='refresh' content='45'/>\
     <title>ESP8266 Demo</title>\
     <style>\
       body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
@@ -62,7 +117,7 @@ void handleRoot() {
   <body>\
     <h1>Hello from ESP8266!</h1>\
     <p>Uptime: %02d:%02d:%02d</p>\
-    <img src=\"/test.svg\" />\
+    <img src=\"./test.svg\" />\
   </body>\
 </html>",
 
@@ -76,6 +131,42 @@ void aled() {
   int cmd = (server.arg(0) == "1")?1:0;
   digitalWrite(D2, cmd);
   swSer.write("!G1\n");
+  
+}
+
+void all() {
+  char temp[800];
+  String test2 = rep;
+  snprintf(temp, 800,
+
+           "<html>\
+  <head>\
+    <title>ESP8266 Demo</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <ul>\
+      <li>Commande utilisé : %s</li>\
+      <li>Option : %s</li>\
+      <li>Température : %s</li>\
+      <li>Humidité : %s</li>\
+      <li>Luminosité : %s</li>\
+      <li>Volt : %s</li>\
+      <li>bouton utilisé : %s</li>\
+    </ul>\
+    <p>: %s</p>\
+    <img src=\"/test.svg\" />\
+  </body>\
+</html>",
+
+           cmdUse.c_str(),cmdOption.c_str(),cmdTemperature.c_str(),cmdHumidity.c_str(),
+           cmdLight.c_str(),
+           cmdVolt.c_str(),
+           cmdBtn.c_str()
+          );
+  server.send(200, "text/html", temp);
 }
 
 void handleNotFound() {
@@ -104,11 +195,13 @@ void setup(void) {
   Serial.begin(9600);
   WiFi.mode(WIFI_STA);
   swSer.begin(9600);
+  delay(200);
   WiFi.begin(ssid, password);
   Serial.println("");
 
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
+    swSer.write("!I30\n");
     delay(500);
     Serial.print(".");
   }
@@ -124,34 +217,151 @@ void setup(void) {
   }
 
   server.on("/", handleRoot);
-  server.on("/test.svg", drawGraph);
+  server.on("/test.svg", drawGraphLight);
   server.on("/execute", aled);
+  server.on("/testall", all);
   server.on("/inline", []() {
     server.send(200, "text/plain", "this works as well");
   });
-  server.onNotFound(handleNotFound);
+  SPIFFS.begin();                           // Start the SPI Flash Files System
+  
+  server.onNotFound([]() {                              // If the client requests any URI
+    if (!handleFileRead(server.uri()))                  // send it if it exists
+      server.send(404, "text/plain", "404: Not Found"); // otherwise, respond with a 404 (Not Found) error
+});
   server.begin();
   Serial.println("HTTP server started");
 }
 
 void loop(void) {
   server.handleClient();
+  softSerialEvent();
+  if (stringComplete) {
+    Serial.println(inputString);
+    getValueAll(inputString,';');
+    rep = inputString;
+    // clear the string:
+    inputString = "";
+    stringComplete = false;
+  }
 }
 
-void drawGraph() {
+
+void drawGraphLight() {
   String out = "";
   char temp[100];
   out += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"400\" height=\"150\">\n";
   out += "<rect width=\"400\" height=\"150\" fill=\"rgb(250, 230, 210)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
   out += "<g stroke=\"black\">\n";
-  int y = rand() % 130;
+  float light = atoi(cmdLight.c_str());
+  float calcul = (light/800)*100;
+  int y = calcul;
   for (int x = 10; x < 390; x += 10) {
-    int y2 = rand() % 130;
-    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 140 - y, x + 10, 140 - y2);
+    softSerialEvent();
+    float light = atoi(cmdLight.c_str());
+    Serial.println(light);
+    float calcul = (light/800)*100;
+    int y2 = calcul;
+    Serial.println(y2);
+    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 40-y, x + 10, 40-y2);
     out += temp;
     y = y2;
+    if (stringComplete) {
+    Serial.println(inputString);
+    getValueAll(inputString,';');
+    rep = inputString;
+    // clear the string:
+    inputString = "";
+    stringComplete = false;
+  }
+  delay(1000);
   }
   out += "</g>\n</svg>\n";
 
   server.send(200, "image/svg+xml", out);
+}
+
+
+
+
+void softSerialEvent() {
+  while (swSer.available()) {
+    char inChar = (char)swSer.read();
+    // add it to the inputString:
+    if(inputString.length() <= Tmax){
+      if (inChar == CF) {
+        stringComplete = true;
+      }else
+         inputString += inChar;
+    }
+
+  }
+}
+
+void getValueAll(String data, char separator)
+{
+  int found = 0;
+  int cpt=0;
+  String value="";
+  int maxIndex = data.length()-1;
+  for(int i=0; i<=maxIndex; i++){
+    if(data.charAt(i)==separator || i==maxIndex){
+      if(cpt==0)cmdUse = value;
+      if(cpt==1)cmdOption = value;
+      if(cpt==2)cmdTemperature = value;
+      if(cpt==3)cmdHumidity = value;
+      if(cpt==4)cmdLight = value;
+      if(cpt==5)cmdVolt = value;
+      if(cpt==6)cmdBtn = value;
+      value="";
+      cpt++;
+    }
+    else{
+      value += data.charAt(i);
+    }
+  }
+}
+
+void getValueLight(String data, char separator)
+{
+  Serial.println(data);
+  int found = 0;
+  int cpt=0;
+  String value="";
+  int maxIndex = data.length()-1;
+  for(int i=0; i<=maxIndex; i++){
+    if(data.charAt(i)==separator || i==maxIndex){
+      if(cpt==1)valueLight = value;
+      value="";
+      cpt++;
+    }
+    else{
+      value += data.charAt(i);
+    }
+  }
+  Serial.println(valueLight);
+}
+
+
+
+String getContentType(String filename) { // convert the file extension to the MIME type
+  if (filename.endsWith(".html")) return "text/html";
+  else if (filename.endsWith(".css")) return "text/css";
+  else if (filename.endsWith(".js")) return "application/javascript";
+  else if (filename.endsWith(".ico")) return "image/x-icon";
+  return "text/plain";
+}
+
+bool handleFileRead(String path) { // send the right file to the client (if it exists)
+  Serial.println("handleFileRead: " + path);
+  if (path.endsWith("/")) path += "index.html";         // If a folder is requested, send the index file
+  String contentType = getContentType(path);            // Get the MIME type
+  if (SPIFFS.exists(path)) {                            // If the file exists
+    File file = SPIFFS.open(path, "r");                 // Open it
+    size_t sent = server.streamFile(file, contentType); // And send it to the client
+    file.close();                                       // Then close the file again
+    return true;
+  }
+  Serial.println("\tFile Not Found");
+  return false;                                         // If the file doesn't exist, return false
 }
