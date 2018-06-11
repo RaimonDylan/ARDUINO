@@ -1,6 +1,7 @@
-# ARDUINO
+# TP ARDUINO - CNAM:STMN 2018
+> Mise en œuvre de capteurs - Dialogues sur la liaison série
 
-# Mise en œuvre de capteurs - Dialogues sur la liaison série
+## Réalisé par Dylan Raimon, Dylan Antonio et David MOLINARI
 
 ###  1) Stocker les données reçues et détecter la fin d'une commande
 
