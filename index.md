@@ -1,13 +1,19 @@
 # TP ARDUINO - CNAM:STMN 2018
 
-> Mise en œuvre de capteurs - Dialogues sur la liaison série
+- TP2 : Mise en œuvre de capteurs - Dialogues sur la liaison série 
+- TP3 : Objet Connecté
 
 ## Réalisé par Dylan Raimon, Dylan Antonio et David MOLINARI
 
-  ![GitHub Logo](https://i.imgur.com/dFmzsmO.jpg)
+
+  
+  
+<img src="https://i.imgur.com/dFmzsmO.jpg" />
 
 
-#### TP2
+# TP2
+
+[Code TP2](./TPFULL/TPFULL.ino)
 
 ###  1) Stocker les données reçues et détecter la fin d'une commande
 
@@ -237,7 +243,9 @@ case 'C':
 
 
 
-#### TP3
+# TP3
+
+[Code TP3](./WebServerTP/WebServerTP.ino)
 
 ###  1.1) Communiquer avec l'ATMega
 
@@ -261,12 +269,34 @@ void softSerialEvent() {
 
 ```cpp
 
-en cours
+void getValueAll(String data, char separator)
+{
+  int found = 0;
+  int cpt=0;
+  String value="";
+  int maxIndex = data.length()-1;
+  for(int i=0; i<=maxIndex; i++){
+    if(data.charAt(i)==separator || i==maxIndex){
+      if(cpt==0)cmdUse = value;
+      if(cpt==1)cmdOption = value;
+      if(cpt==2)cmdTemperature = value;
+      if(cpt==3)cmdHumidity = value;
+      if(cpt==4)cmdLight = value;
+      if(cpt==5)cmdVolt = value;
+      if(cpt==6)cmdBtn = value;
+      value="";
+      cpt++;
+    }
+    else{
+      value += data.charAt(i);
+    }
+  }
+}
 
 ```
 
 
-### 2) Extraire les informations d'une commande !I
+### 2) Un premier serveur web
 
 
 ```cpp
@@ -321,3 +351,56 @@ if (MDNS.begin("cnam")) {
           );
 }
 ```
+
+
+### 4)  Une courbe avec les dernières valeurs mesurées
+
+```cpp
+void drawGraphLight() {
+  String out = "";
+  char temp[100];
+  out += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"400\" height=\"150\">\n";
+  out += "<rect width=\"400\" height=\"150\" fill=\"rgb(250, 230, 210)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
+  out += "<g stroke=\"black\">\n";
+  int tab[42];
+  float gros = 0;
+  for(int i=0;i<41;i++){
+    softSerialEvent();
+    float light = atoi(cmdLight.c_str());
+    Serial.println(light);
+    float calcul = light;
+    tab[i] = calcul;
+    gros = (gros < calcul)?calcul:gros;
+    if (stringComplete) {
+    Serial.println(inputString);
+    getValueAll(inputString,';');
+    rep = inputString;
+    // clear the string:
+    inputString = "";
+    stringComplete = false;
+  }
+  delay(1000);
+  }
+  float calcul = tab[0]/gros;
+  calcul = 130*calcul;
+  int y = calcul;
+  int i = 1;
+  
+  for (int x = 10; x < 390; x += 10) {
+    float calcul = tab[i]/gros;
+  calcul = 130*calcul;
+    int y2 = calcul;
+    Serial.println(y2);
+    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 140-y, x + 10, 140-y2);
+    out += temp;
+    y = y2;
+    i++;
+  }
+  out += "</g>\n</svg>\n";
+
+  server.send(200, "image/svg+xml", out);
+}
+```
+
+
+ ![GitHub Logo](https://i.imgur.com/iRi51B3.png)
