@@ -10,7 +10,7 @@
 
 ###  1) Stocker les données reçues et détecter la fin d'une commande
 
-```java
+```cpp
 
 #define TMAX  300
 #define CF '\n'
@@ -38,7 +38,7 @@ void serialEvent() {
 
 ###  2) Implémenter les premières commandes
 
-```java
+```cpp
 String parseCommandLine(String s){
   if(s[0] == '!'){
     switch (s[1]){
@@ -67,7 +67,7 @@ String parseCommandLine(String s){
 
 ###  3) Lecture température et humidité
 
-```java
+```cpp
 
   humidity = (float)(dht.humidity);
   temperature = (float)(dht.temperature); 
@@ -88,7 +88,7 @@ case 'H':
 
 ###  4)  Lecture de la luminosité
 
-```java
+```cpp
 
 case 'L':
         aze = "L;";
@@ -100,7 +100,7 @@ case 'L':
 
 ###  5)  Éclairage automatique
 
-```java
+```cpp
 void switchLight() {
   light = sensor.getRawLight();
   if(light > (SEUIL+20)){
@@ -125,8 +125,7 @@ void switchLight() {
 
 ###  6)   Lire la tension d'alimentation
 
-```java
-
+```cpp
 int16_t readPwrVoltage(){
   sensorValue = analogRead(0);
   sensorValue = sensorValue*(3300/1024);
@@ -145,7 +144,7 @@ case 'V':
 
 ###  7)   Buttons "analogiques"
 
-```java
+```cpp
 
 int8_t readButtons(int s){
   if(s!=0 || oldInput != 0){
@@ -187,7 +186,7 @@ int8_t readButtons(int s){
 
 ###  8) Trame d'information périodique
 
-```java
+```cpp
 
  case 'I':
         if(s[2] == '3' && s[3] == '0'){
@@ -220,7 +219,7 @@ int8_t readButtons(int s){
 
 ###  9) Faire varier la couleur de la led RGB
 
-```java
+```cpp
 case 'C':
         aze = "C;";
         char * p;
